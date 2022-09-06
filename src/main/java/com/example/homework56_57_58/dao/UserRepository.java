@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 @Repository
@@ -29,5 +30,31 @@ public class UserRepository {
         } catch (SQLException e) {
             throw new RuntimeException();
         }
+    }
+
+    public User authorizationUser(String email, String password) {
+        String SQL_USER_AUTHORIZATION = "select * from \"homework56-57-58\".users where email = ? and password = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(SQL_USER_AUTHORIZATION)) {
+
+            preparedStatement.setString(1, email);
+            preparedStatement.setString(2, password);
+            preparedStatement.executeUpdate();
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    User user = new User();
+                    user.setId(resultSet.getInt("ID"));
+                    user.setFio(resultSet.getString("FIO"));
+                    user.setEmail(resultSet.getString("EMAIL"));
+                    user.setPassword(resultSet.getString("PASSWORD"));
+                    return user;
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException();
+        }
+        return null;
     }
 }
